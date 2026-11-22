@@ -1,0 +1,22 @@
+{
+  "$schema": "./flash.config.schema.json",
+  "projectName": "RM",
+  "target": "auto",
+  "probe": "auto",
+  "probeSerial": "",
+  "speed": 0,
+  "buildDir": "build/Debug",
+  "buildType": "Debug",
+  "configureArgs": [
+    "-DCMAKE_TOOLCHAIN_FILE=cmake/gcc-arm-none-eabi.cmake"
+  ],
+  "elf": "auto",
+  "openocd": "auto",
+  "openocdVersion": "0.12.0-7",
+  "autoInstallOpenOCD": true,
+  "connectUnderReset": false,
+  "verify": true,
+  "extraOpenocdConfig": [],
+  "binAddress": "0x08000000",
+  "autoSpeedFallback": true
+}

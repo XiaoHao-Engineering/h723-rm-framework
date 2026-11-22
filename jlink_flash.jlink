@@ -1,0 +1,8 @@
+// J-Link Commander 烧录脚本(配合 tasks.json 中的 "Flash: JLink Commander")
+// 用法: JLink.exe -device STM32H723VG -if SWD -speed 4000 -autoconnect 1 -CommanderScript jlink_flash.jlink
+r
+h
+loadfile build/Debug/RM.elf
+r
+g
+qc

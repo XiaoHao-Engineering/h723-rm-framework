@@ -1,0 +1,234 @@
+
+===== PAGE 1 / 21 =====
+Electric Vehicle Power 
+Control
+
+===== PAGE 2 / 21 =====
+Backgrounds
+• After using the supercapacitor, it will unconditionally compensate 
+for the additional chassis power. Buffer energy is no longer 
+reliable.
+• But to prevent the energy of the supercapacitor from being 
+consumed, we need an algorithm to keep the power below the 
+target power.
+
+===== PAGE 3 / 21 =====
+Workable method
+• Sampling the current of each motor installation to get the exact 
+power of the motor.
+• Complex hardware and low reliability
+• Calculation of the expected motor power consumption by 
+modeling the existing feedback values. (Torque, RPM).
+
+===== PAGE 4 / 21 =====
+
+===== PAGE 5 / 21 =====
+Give Current, Given Current, Real Current & 
+Moment
+• Give Current - Control commands sent to the motor. No unit
+• Given Current – C620 Feedback Value No unit
+• Real Current - Actual current consumption of the motor.
+
+===== PAGE 6 / 21 =====
+Physical meaning
+• The physical significance of Give Current and Given Current is 
+torque current. Unit (A).
+• It is used to describe the magnitude of the current that provides 
+the moment.
+• It is proportional to the moment.
+
+===== PAGE 7 / 21 =====
+Derivation of torque versus give current
+• The range of the give current value is -16384~0~16384, 
+corresponding to the give torque current of the C620 is -20A~0~20A.
+Iτ =
+20
+16384 × n
+Iτ is the torque current in A and n is the ESC give current.
+
+===== PAGE 8 / 21 =====
+• We can't use the torque current multiplied by the voltage to get 
+the input power of the motor, the relationship between torque 
+current and torque is as follows.
+τ = KT × Iτ
+
+===== PAGE 9 / 21 =====
+• KT is torque constant.
+• The torque constant in the manual describes the torque of the 
+output shaft of the motor gearbox. Since the feedback from the 
+motor is the rotor speed, in order to facilitate the calculation, we 
+need to get the torque constant of the motor rotor through the 
+calculation of the reduction ratio here.
+• KT = 0.3 × 187
+3591 = 0.01562 N ⋅m/A
+
+===== PAGE 10 / 21 =====
+• give current -> give torque current -> 
+give torque
+• given current -> given torque current -> 
+given torque
+• For ease of description, all are analyzed 
+next using torque
+0
+2
+4
+6
+8
+10
+12
+14
+-6000
+-4000
+-2000
+0
+2000
+4000
+6000
+Give current
+Given current
+
+===== PAGE 11 / 21 =====
+Specification
+• Torque in counterclockwise direction is positive, torque in 
+clockwise direction is negative.
+• Rotation speed in counterclockwise direction is positive and 
+rotation speed in clockwise direction is negative.
+• Power is positive for power consumption and power is negative 
+for power output.
+
+===== PAGE 12 / 21 =====
+Motor power composition
+• The input power of a brushless motor is mainly composed of 
+mechanical power, copper loss, magnetic loss, and static power 
+consumption of the controller. 
+• Among them, the mechanical power accounts for the main part：
+𝑃𝑃𝑚𝑚= 𝜏𝜏𝜏𝜏
+9.55
+• ω is the rotor speed in RPM
+
+===== PAGE 13 / 21 =====
+Problems with 
+the previous 
+algorithm
+• The power consumption 
+of a motor is not only 
+related to the torque, 
+but also to the current 
+speed of the motor.
+0
+2
+4
+6
+8
+10
+12
+-20
+-15
+-10
+-5
+0
+5
+10
+15
+20
+25
+Machine power
+Input power
+
+===== PAGE 14 / 21 =====
+Model expression
+𝑃𝑃𝑖𝑖𝑖𝑖= 𝑃𝑃𝑚𝑚+ 𝑘𝑘1𝜔𝜔2 + 𝑘𝑘2𝜏𝜏2 + 𝑎𝑎
+• The formula is widely used in RoboMaster.
+• Presumably, this is because the other teams found a strong 
+correlation with the two quadratic terms when fitting for power, 
+and chose to keep only these two variables.
+
+===== PAGE 15 / 21 =====
+Data Sample
+• In order to get the size of k1,k2,a 
+more accurately, I used INA226 to 
+sample the real-time ESC 
+consumption current and bus voltage.
+•
+The real current values, torque 
+control values, and rotor speed are 
+then exported and saved to a CSV file 
+using the STM32CubeMonitor.
+
+===== PAGE 16 / 21 =====
+Fitting result
+• Equation fitting using matlab's fit and 
+fittype functions
+0
+5
+10
+15
+20
+25
+30
+35
+3
+4
+5
+6
+7
+8
+9
+10
+real power
+predicte power
+
+===== PAGE 17 / 21 =====
+• Substituting Pin into the model
+• Observing that the equation is a quadratic equation about the torque, and that all other 
+quantities are known quantities, solving for the torque, we get
+𝜏𝜏=
+−𝜔𝜔
+9.55 ±
+𝜔𝜔
+9.55
+2
+−4𝑘𝑘1(𝑘𝑘2𝜔𝜔2 + 𝑎𝑎−𝑃𝑃𝑖𝑖𝑖𝑖)
+2𝑘𝑘1
+𝑘𝑘1𝜏𝜏2 + 𝜔𝜔𝜔𝜔
+9.55 + 𝑘𝑘2𝜔𝜔2 + 𝑎𝑎−𝑃𝑃𝑖𝑖𝑖𝑖= 0
+
+===== PAGE 18 / 21 =====
+Multiple solutions problem
+• Here both solutions make sense. It is not possible to keep only 
+one solution and then reassign it according to the direction of the 
+original moments.
+• At the same moment, there are indeed two values of torque, one 
+positive and one negative, which cause the motor to consume a 
+power of Pmax!
+𝜏𝜏=
+−𝜔𝜔
+9.55 ±
+𝜔𝜔
+9.55
+2
+−4𝑘𝑘1(𝑘𝑘2𝜔𝜔2 + 𝑎𝑎−𝑃𝑃)
+2𝑘𝑘1
+
+===== PAGE 19 / 21 =====
+The power control algorithm based on this 
+model
+• Uniform distribution of one quarter of the maximum power to 
+each motor
+• Wasted power, can't walk in a straight line.
+• All into absolute values, and then set the scaling factor K and 
+perform the calculation.
+• Calculations are biased. 
+• Wasting the motor's counter electromotive force.
+
+===== PAGE 20 / 21 =====
+Power redistribution
+The algorithm is first used to forward calculate the power of each motor to obtain the power 
+scaling factor k
+𝑘𝑘= 𝑃𝑃𝑚𝑚𝑚𝑚𝑚𝑚
+Σ𝑃𝑃𝑐𝑐𝑐𝑐𝑐𝑐
+Let Pin = 𝑘𝑘× 𝑃𝑃𝑐𝑐𝑐𝑐𝑐𝑐, bring in the formula to find the new moment.
+Selection of the solution according to the direction of the original moment
+
+===== PAGE 21 / 21 =====
+Complete Control Block Diagram

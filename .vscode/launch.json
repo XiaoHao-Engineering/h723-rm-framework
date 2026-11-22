@@ -1,0 +1,44 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug (OpenOCD + DAPLink)",
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "openocd",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build/Debug/RM.elf",
+            "configFiles": ["openocd_dap.cfg"],
+            "device": "STM32H723VG",
+            // 如需查看外设寄存器, 请下载 STM32H723.svd 后取消下面这行的注释
+            // "svdFile": "${workspaceFolder}/STM32H723.svd",
+            "runToEntryPoint": "main",
+            "showDevDebugOutput": "none",
+            "preLaunchTask": "CMake: build (Debug)"
+        },
+        {
+            "name": "Debug (JLink)",
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "jlink",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build/Debug/RM.elf",
+            "device": "STM32H723VG",
+            "interface": "swd",
+            "speed": 4000,
+            "runToEntryPoint": "main",
+            "preLaunchTask": "CMake: build (Debug)"
+        },
+        {
+            "name": "Attach (JLink)",
+            "type": "cortex-debug",
+            "request": "attach",
+            "servertype": "jlink",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build/Debug/RM.elf",
+            "device": "STM32H723VG",
+            "interface": "swd",
+            "speed": 4000
+        }
+    ]
+}
